@@ -1,0 +1,10 @@
+{
+    "configurations": [
+    {
+        "name": "OCaml earlybird (experimental)",
+        "type": "ocaml.earlybird",
+        "request": "launch",
+        "program": "${workspaceFolder}/OCaml Bytecode Executable"
+    }
+    ]
+}
