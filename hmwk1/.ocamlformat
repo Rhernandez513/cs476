@@ -1,0 +1,9 @@
+{
+  "version": "0.21.0",
+  "profile": "default",
+  "steps": [
+    ["opam", "install", "@opam/ocamlformat"],
+    ["eval", "$(opam env)"],
+    ["ocamlformat", "-i"]
+  ]
+}
