@@ -6,10 +6,40 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "ocamlc -o build/hello app/hello.ml",
+            "command": "ocamlc -o hello.byte hello.ml",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build app",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build test",
+            "type": "shell",
+            "command": "ocamlfind ocamlc -o test_hello.byte -package ounit2 -linkpkg hello.cmo test_hello.ml",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "run test",
+            "type": "shell",
+            "command": "./test_hello.byte",
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "rm ./*.byte ./*.cmo ./*.cmi ./*.log ./*.cache",
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
                 "isDefault": true
             }
         }
