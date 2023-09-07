@@ -1,3 +1,10 @@
+(*
+REF:
+  - ChatGPT-3.5 Free Research Preview used to assist debugging: https://chat.openai.com/?model=text-davinci-002-render-sha
+  - OCaml STBLIB docs references also: https://v2.ocaml.org/api/Stdlib.html
+  - Written using VSCode and the OCaml Platform extension for VSCode
+*)
+
 (* question 1 *)
 let rec sum_range (min : int) (max : int) : int = 
   if min > max then

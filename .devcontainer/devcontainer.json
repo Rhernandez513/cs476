@@ -1,0 +1,15 @@
+{
+    "name": "ocaml-dev-container",
+    "context": "..",
+    "dockerFile": "Dockerfile",
+    "customizations": {
+      "vscode": {
+        "extensions": ["ocamllabs.ocaml-platform"],
+        "settings": {
+          "terminal.integrated.shell.linux": "/bin/bash"
+        }
+      }
+    },
+    "postCreateCommand": "ocaml app/hello.ml"
+  }
+  
