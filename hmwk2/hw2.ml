@@ -1,3 +1,8 @@
+(* Ref: ChatGPT3.5 Free Research Preview https://chat.openai.com/?model=text-davinci-002-render-sha *)
+(* Ref: OCaml Standard Libary: https://v2.ocaml.org/api/index.html *)
+(* Ref: OCaml Standard Libary: https://ocaml.org/docs/if-statements-and-loops *)
+(* Ref: StackOverFlow: https://stackoverflow.com/questions/13590307/whats-the-difference-between-equal-and-identical-in-ocaml *)
+
 type term = Until of term * term 
   | Eq of string * int 
   | Up of string * int (* add problem 2 here *)
