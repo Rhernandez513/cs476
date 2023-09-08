@@ -34,8 +34,6 @@ let my_term : term =
   For ("i", 2, Until (Up ("i", 1), Eq ("i", 10)))
 
 
-
-
 type exp = Num of int
   | Add of exp * exp 
   | Bool of bool
@@ -54,7 +52,42 @@ let rec typecheck (e : exp) (t : typ) : bool =
   | And (e1, e2) -> typecheck e1 BoolTy && typecheck e2 BoolTy && t = BoolTy
   | Not e -> typecheck e BoolTy && t = BoolTy
   (* problems 4 and 5 *)
+  | If (e, e1, e2) -> typecheck e BoolTy && typecheck e1 t && typecheck e2 t
+  | Eq (e1, e2) -> (match t with
+                    | IntTy -> e1 = e2
+                    | BoolTy -> e1 = e2)
 ;;
 
-typecheck (If (Bool true, Num 1, Num 3)) IntTy;; (* should return true *)
-typecheck (If (Bool true, Bool false, Num 3)) BoolTy;; (* should return false *)
+(* Test cases *)
+let () =
+  let result1 = 
+    typecheck (If (Bool true, Num 1, Num 3)) IntTy in
+  print_endline ("Result 1: " ^ string_of_bool result1);
+  assert (result1 = true); (* should return true *)
+
+  let result2 = 
+    typecheck (If (Bool true, Bool false, Num 3)) BoolTy in
+  print_endline ("Result 2: " ^ string_of_bool result2);
+  assert (result2 = false); (* should return false *)
+
+  (* problems 4 *)
+  let result3 = 
+    typecheck (If (Num 3, Num 1, Num 3)) IntTy in
+  print_endline ("Result 3: " ^ string_of_bool result3);
+  assert (result3 = false); (* should return false *)
+
+  (* problems 5 *)
+  let result4 = 
+    typecheck (Eq (Num 1, Num 1)) BoolTy in
+  print_endline ("Result 4: " ^ string_of_bool result4);
+  assert (result4 = true); (* should return true *)
+
+  let result5 = 
+    typecheck (Eq (Bool true, Bool false)) BoolTy in
+  print_endline ("Result 5: " ^ string_of_bool result5);
+  assert (result5 = false); (* should return false *)
+
+  let result6 = 
+    typecheck (Eq (Num 1, Bool false)) BoolTy in
+  print_endline ("Result 6: " ^ string_of_bool result6);
+  assert (result6 = false) (* should return false *)
