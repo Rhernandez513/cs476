@@ -1,0 +1,90 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage[
+  margin=1.5cm,
+  includefoot,
+  footskip=30pt,
+]{geometry}
+\geometry{a4paper}
+
+\usepackage{verbatim}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{qtree}
+\usepackage{semantic}
+\usepackage{mathpartir}
+
+\title{HW3 -- Operational Semantics}
+\author{CS 476, Fall 2023}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Instructions}
+This is a written assignment. You may write your solutions by hand and scan/take a picture of the paper, or in a text editor (Notepad, Word, LaTeX, etc.) and submit a text file or PDF. If you need any help getting your solutions into a suitable format, just let the instructors know. As always, please don't hesitate to ask for help on Piazza (\url{https://piazza.com/class/ksknvqg6ogb2kc}).
+
+\section{Operational Semantics of Expressions and Commands}
+Here are the operational semantics rules for a simple imperative programming language, using the ``hybrid style'' of big steps for expressions and small steps for commands.
+
+\begin{mathpar}
+\inference[\textsc{num}]{(n\text{ is a number literal})}{(n, \rho) \Downarrow n}
+
+\inference[\textsc{bool}]{(b\text{ is a boolean literal})}{(b, \rho) \Downarrow b}
+
+\inference[\textsc{var}]{(\rho(x) = v)}{(x, \rho) \Downarrow v}
+
+\inference[\textsc{op}]{(e_1, \rho) \Downarrow v_1 \and (e_2, \rho) \Downarrow v_2 \and (v_1 \oplus v_2 = v)}{(e_1\ \texttt{op}\ e_2, \rho) \Downarrow v} \text{ for each operator \texttt{op} and its meta-level equivalent }\oplus
+\end{mathpar}
+
+\begin{mathpar}
+
+\inference[\textsc{asgn}]{(e, \rho) \Downarrow v}{(x\ \texttt{:=}\ e, \rho) \rightarrow (\texttt{skip}, \rho[x \mapsto v])}
+
+\inference[\textsc{seq-struct}]{(c_1, \rho) \rightarrow (c_1', \rho')}{(c_1\texttt{;}\,c_2, \rho) \rightarrow (c_1'\texttt{;}\,c_2, \rho')}
+
+\inference[\textsc{seq-comp}]{}{(\texttt{skip;}\,c_2, \rho) \rightarrow (c_2, \rho)}
+
+\end{mathpar}
+\section{Problems}
+
+\begin{enumerate}
+\item (6 points total) Consider the following program configuration: \[(\texttt{a := b + 2; c := 3 + 4},\; \{\texttt{b} = 5\})\]
+
+\begin{enumerate}
+\item (2 points) What is the top-level operation in this configuration's program? Put another way, which rule's conclusion would match the entire configuration?
+
+\vspace{.5in}
+
+
+\item (4 points) Write a proof tree for the step taken by the configuration. The bottom of the tree should have the form $(\texttt{a := b + 2; c := 3 + 4},\; \{\texttt{b} = 1\}) \rightarrow ...$, with the $...$ filled in according to the rules you apply. You only need to write a proof tree for a single small step.
+
+\end{enumerate}
+\newpage
+
+\item (9 points total) Suppose we wanted to add a new \texttt{?} operation to our language of the form $x\ \texttt{?}\ y$, where $x$ and $y$ can be any program expression. The program $x\ \texttt{?}\ y$ is meant to return the value of $x$ unless that value is 0, in which case it returns the value of $y$ instead.
+
+\begin{enumerate}
+\item (2 points) Should $x\ \texttt{?}\ y$ be an expression or a command? Why?
+
+\vspace{1in}
+
+\item (5 points) Write one or more semantic rules for the \texttt{?} operation, in the appropriate style (big-step or small-step) based on your answer to the previous question.
+
+\vspace{2.3in}
+
+\item (2 points) Using your rules, write a proof tree showing that if the value of variable $\texttt{z}$ is currently 0 and the value of variable \texttt{a} is currently 5, then the value of \texttt{z ?\ a} is 5.
+
+\vspace{1.8in}
+
+
+\item (for graduate students) Now, suppose we want $x\ \texttt{?}\ y$ to \textbf{change} the value of $x$ (which must be a variable) to the value of $y$ when $x$ is 0, instead of returning the value of $y$. When $x$ is not zero, $x\ \texttt{?}\ y$ should do nothing at all. Would this change your answer to 2a? How would your rule(s) in 2b change?
+
+
+\end{enumerate}
+
+\end{enumerate}
+
+\end{document}
