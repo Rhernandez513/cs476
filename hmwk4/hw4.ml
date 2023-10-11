@@ -82,8 +82,26 @@ let rec step_cmd (con : config) : config option =
                         | Some (BoolVal false) -> Some (c2, k, r)
                         | _ -> None)
   | While (e, c) -> Some (If (e, Seq (c, While (e, c)), Skip), k, r)
-  (* | Return ... (problem 2) *)
-  (* | Call ... (problem 3) *)
+  | Return e -> 
+    (match eval_exp e r with
+    | Some v ->
+      (match k with
+        | (env0, x) :: krest -> Some (Skip, krest, update env0 x (Val v))
+        | _ -> None)
+    | None -> None)
+  | Call (f, x, el) -> 
+    (match eval_exps el r, lookup r f with
+      | Some vl, Some (Fun (params, c)) ->
+        (match add_args (empty_env) params vl with
+          | env' -> Some (c, (r, x) :: k, env'))
+      | _ -> None)
+  (* Tried this too but neither version worked *)
+  (* | Call (f, x, el) -> 
+    (match eval_exps el r, lookup r f with
+      | Some vl, Some (Fun (params, c)) ->
+        (match add_args (update r x (Val (IntVal 0))) params vl with
+          | env' -> Some (c, (r, x) :: k, env'))
+      | _ -> None) *)
   | _ -> None
 
 let rec run_config (con : config) : config =
@@ -94,22 +112,31 @@ let rec run_config (con : config) : config =
 let run_prog (c : cmd) r =
   run_config (c, [], r)
 
-(* problem 1 *)
-(* let my_prog : cmd = <fill in here> *)
-
-(* test cases *)
 (* Define a helper function to convert values to strings *)
 let string_of_value = function
   | IntVal i -> string_of_int i
   | BoolVal b -> string_of_bool b
 
-  (* Define a helper function to convert environment values to strings *)
+(* Define a helper function to convert environment values to strings *)
 let string_of_env env =
   match lookup env "x", lookup env "y" with
   | Some (Val (IntVal x)), Some (Val (IntVal y)) ->
     "x: " ^ string_of_int x ^ ", y: " ^ string_of_int y
   | _, _ -> "Not found"
 
+(* problem 1 *)
+
+let my_prog : cmd = Assign("x", Num 5)
+let prob_one_test1 = run_config(my_prog, [], empty_env)
+let (res_c, res_k, res_r) = prob_one_test1;;
+lookup res_r "x";;
+
+print_endline "Looking up x in problem 1 and printing it's value: "
+let _ = print_endline (match lookup res_r "x" with
+  | Some (Val v) -> "x: " ^ string_of_value v
+  | _ -> "x: Not found")
+
+(* test cases *)
 let env0 = update empty_env "add" (Fun (["x"; "y"], Return (Add (Var "x", Var "y"))))
 
 let env1 = update (update env0 "x" (Val (IntVal 1)))
@@ -124,6 +151,7 @@ let (res_c, res_k, res_r) = ret_test1;;
 lookup res_r "x";; (* should return Some (Val (IntVal 3)) *)
 lookup res_r "y";; (* should return None *)
 
+print_endline "ret_test1, Looking up x in problem 2 and printing it's value: "
 let _ = print_endline (match lookup res_r "x" with
   | Some (Val v) -> "x: " ^ string_of_value v
   | _ -> "x: Not found")
@@ -136,6 +164,9 @@ let (res_c, res_k, res_r) = call_test1;;
 lookup res_r "x";; (* should return Some (Val (IntVal 3)) *)
 lookup res_r "y";; (* should return None *)
 
+print_endline "call_test1: "
+let _ = print_endline ("env0: " ^ string_of_env env0)
+let _ = print_endline ("env1: " ^ string_of_env env1)
 let _ = print_endline (match lookup res_r "x" with
   | Some (Val v) -> "x: " ^ string_of_value v
   | _ -> "x: Not found")
