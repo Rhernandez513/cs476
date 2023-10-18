@@ -89,19 +89,12 @@ let rec step_cmd (con : config) : config option =
         | (env0, x) :: krest -> Some (Skip, krest, update env0 x (Val v))
         | _ -> None)
     | None -> None)
-  | Call (f, x, el) -> 
+  | Call (x, f, el) -> 
     (match eval_exps el r, lookup r f with
       | Some vl, Some (Fun (params, c)) ->
         (match add_args (empty_env) params vl with
           | env' -> Some (c, (r, x) :: k, env'))
       | _ -> None)
-  (* Tried this too but neither version worked *)
-  (* | Call (f, x, el) -> 
-    (match eval_exps el r, lookup r f with
-      | Some vl, Some (Fun (params, c)) ->
-        (match add_args (update r x (Val (IntVal 0))) params vl with
-          | env' -> Some (c, (r, x) :: k, env'))
-      | _ -> None) *)
   | _ -> None
 
 let rec run_config (con : config) : config =
