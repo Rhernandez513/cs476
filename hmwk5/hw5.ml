@@ -100,19 +100,35 @@ let rec typecheck_list (gamma : context) (es : exp list) (ts : typ list) : bool 
   List.for_all2 (typecheck gamma) es ts
   
 let rec typecheck_cmd (gamma : context) (c : cmd) : bool =
+  let typecheck_expr_list gamma es ts =
+    let expr_types = List.map (fun e -> type_of gamma e) es in
+    if List.length expr_types = List.length ts then
+      List.for_all2 (fun et ft -> 
+        match et with
+        | Some et' -> subtype gamma et' ft
+        | None -> false
+      ) expr_types ts
+    else
+      false
+  in
   match c with
   | Assign (i, e) ->
       (match lookup_var gamma i with
-       | Some t -> typecheck gamma e t
-       | None -> false)
+        | Some t -> typecheck gamma e t
+        | None -> false)
   | Seq (c1, c2) -> typecheck_cmd gamma c1 && typecheck_cmd gamma c2
   | Skip -> true
-  (* problem 3 *)
-  (* problem 4 (grad only) *)
+  | New (x, c, es) ->
+      (match lookup_var gamma x, lookup_class gamma c with
+        | Some t0, Some cd ->
+            let field_types = types_of_params (cd.fields) in
+            typecheck gamma (Var x) (ClassTy c) &&
+            typecheck_expr_list gamma es field_types
+        | _ -> false)
   | Return e ->
       (match lookup_var gamma "__ret" with
-       | Some t -> typecheck gamma e t
-       | None -> false)
+        | Some t -> typecheck gamma e t
+        | None -> false)
 
 (* test cases *)  
 let ct0 = update (update empty_context
