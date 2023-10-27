@@ -70,9 +70,12 @@ let rec supers (ct : context) (c : ident) : ident list =
     | Some cd -> c :: supers ct cd.super
     | _ -> []
 
-let subtype (ct : context) (t1 : typ) (t2 : typ) : bool = (t1 = t2) ||
+let rec subtype (ct : context) (t1 : typ) (t2 : typ) : bool =
+  (t1 = t2) ||
   match t1, t2 with
-  | ClassTy c1, ClassTy c2 -> List.exists (fun x -> x = c2) (supers ct c1)
+  | ClassTy c1, ClassTy c2 ->
+      let supertypes = supers ct c1 in
+      List.exists (fun x -> x = c2) supertypes
   | _, _ -> false
     
 let rec type_of (gamma : context) (e : exp) : typ option =
@@ -99,18 +102,13 @@ let typecheck (gamma : context) (e : exp) (t : typ) : bool =
 let rec typecheck_list (gamma : context) (es : exp list) (ts : typ list) : bool =
   List.for_all2 (typecheck gamma) es ts
   
+let valid_num_fields cdecl es =
+  List.length es = List.length cdecl.fields
+
+let valid_num_params mdecl es =
+  List.length es = List.length mdecl.params
+
 let rec typecheck_cmd (gamma : context) (c : cmd) : bool =
-  let typecheck_expr_list gamma es ts =
-    let expr_types = List.map (fun e -> type_of gamma e) es in
-    if List.length expr_types = List.length ts then
-      List.for_all2 (fun et ft -> 
-        match et with
-        | Some et' -> subtype gamma et' ft
-        | None -> false
-      ) expr_types ts
-    else
-      false
-  in
   match c with
   | Assign (i, e) ->
       (match lookup_var gamma i with
@@ -120,15 +118,30 @@ let rec typecheck_cmd (gamma : context) (c : cmd) : bool =
   | Skip -> true
   | New (x, c, es) ->
       (match lookup_var gamma x, lookup_class gamma c with
-        | Some t0, Some cd ->
-            let field_types = types_of_params (cd.fields) in
-            typecheck gamma (Var x) (ClassTy c) &&
-            typecheck_expr_list gamma es field_types
+        | Some t0, Some cdecl ->
+            let param_types = List.map fst cdecl.fields in
+            if subtype gamma (ClassTy c) t0 && valid_num_fields cdecl es && typecheck_list gamma es param_types then
+              true
+            else
+              false
+        | _ -> false)
+  | Invoke (x, e, m, es) ->
+      (match type_of gamma e with
+        | Some (ClassTy c) ->
+            (match lookup_method gamma c m with
+              | Some mdecl ->
+                  let param_types = List.map fst mdecl.params in
+                  if valid_num_params mdecl es && typecheck_list gamma es param_types && subtype gamma mdecl.ret (lookup_var gamma x) then
+                    true
+                  else
+                    false
+              | None -> false)
         | _ -> false)
   | Return e ->
       (match lookup_var gamma "__ret" with
         | Some t -> typecheck gamma e t
         | None -> false)
+  
 
 (* test cases *)  
 let ct0 = update (update empty_context
