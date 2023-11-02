@@ -117,31 +117,44 @@ let rec typecheck_cmd (gamma : context) (c : cmd) : bool =
   | Seq (c1, c2) -> typecheck_cmd gamma c1 && typecheck_cmd gamma c2
   | Skip -> true
   | New (x, c, es) ->
-      (match lookup_var gamma x, lookup_class gamma c with
-        | Some t0, Some cdecl ->
-            let param_types = List.map fst cdecl.fields in
-            if subtype gamma (ClassTy c) t0 && valid_num_fields cdecl es && typecheck_list gamma es param_types then
-              true
-            else
-              false
-        | _ -> false)
+    (match lookup_var gamma x, lookup_class gamma c with
+      | Some t0, Some cdecl ->
+          let param_types =
+            let rec all_fields acc class_name =
+              match lookup_class gamma class_name with
+              | Some cd ->
+                let current_fields = List.map fst cd.fields in
+                let inherited_fields = all_fields acc cd.super in
+                current_fields @ inherited_fields
+              | None -> []
+            in
+            all_fields [] c
+          in
+          if subtype gamma (ClassTy c) t0 && valid_num_fields cdecl es && typecheck_list gamma es param_types then
+            true
+          else
+            false
+      | _ -> false)
   | Invoke (x, e, m, es) ->
-      (match type_of gamma e with
-        | Some (ClassTy c) ->
-            (match lookup_method gamma c m with
-              | Some mdecl ->
-                  let param_types = List.map fst mdecl.params in
-                  if valid_num_params mdecl es && typecheck_list gamma es param_types && subtype gamma mdecl.ret (lookup_var gamma x) then
-                    true
-                  else
-                    false
-              | None -> false)
-        | _ -> false)
+    (match type_of gamma e with
+      | Some (ClassTy c) ->
+          (match lookup_method gamma c m with
+            | Some mdecl ->
+                let param_types = List.map fst mdecl.params in
+                let ret_type = lookup_var gamma x in
+                (match ret_type with
+                  | Some ret_type ->
+                    if valid_num_params mdecl es && typecheck_list gamma es param_types && subtype gamma mdecl.ret ret_type then
+                      true
+                    else
+                      false
+                  | None -> false)
+            | None -> false)
+      | _ -> false)
   | Return e ->
       (match lookup_var gamma "__ret" with
         | Some t -> typecheck gamma e t
         | None -> false)
-  
 
 (* test cases *)  
 let ct0 = update (update empty_context
@@ -184,14 +197,18 @@ let cmd5 : cmd =
        (* x = s.area(); *)
 
 (* run the tests *)
-let supers_test1 = subtype ct0 (ClassTy "Square") (ClassTy "Object") (* should return true *)
 
-let supers_test2 = subtype ct0 (ClassTy "Object") (ClassTy "Square") (* should return false *)
+let () =
+  let supers_test1 = subtype ct0 (ClassTy "Square") (ClassTy "Object") in (* should return true *)
+  let supers_test2 = subtype ct0 (ClassTy "Object") (ClassTy "Square") in (* should return false *)
+  let field_test1 = (type_of gamma0 exp2 = Some IntTy) in (* should return true *)
+  let new_test1 = typecheck_cmd gamma0 cmd3 in (* should return true *)
+  let invoke_test1 = typecheck_cmd gamma1 cmd4 in (* should return true *)
+  let invoke_test2 = typecheck_cmd gamma0 cmd5 in (* should return true *)
 
-let field_test1 = (type_of gamma0 exp2 = Some IntTy) (* should return true *)
-  
-let new_test1 = typecheck_cmd gamma0 cmd3 (* should return true *)
-  
-let invoke_test1 = typecheck_cmd gamma1 cmd4 (* should return true *)
-  
-let invoke_test2 = typecheck_cmd gamma0 cmd5 (* should return true *)
+  Printf.printf "supers_test1: %b\n" supers_test1;
+  Printf.printf "supers_test2: %b\n" supers_test2;
+  Printf.printf "field_test1: %b\n" field_test1;
+  Printf.printf "new_test1: %b\n" new_test1;
+  Printf.printf "invoke_test1: %b\n" invoke_test1;
+  Printf.printf "invoke_test2: %b\n" invoke_test2;
