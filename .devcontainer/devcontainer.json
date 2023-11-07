@@ -3,13 +3,15 @@
     "context": "..",
     "dockerFile": "Dockerfile",
     "customizations": {
-      "vscode": {
-        "extensions": ["ocamllabs.ocaml-platform"],
-        "settings": {
-          "terminal.integrated.shell.linux": "/bin/bash"
+        "vscode": {
+            "extensions": [
+                "ocamllabs.ocaml-platform",
+                "mathematic.vscode-latex"
+            ],
+            "settings": {
+                "terminal.integrated.shell.linux": "/bin/bash"
+            }
         }
-      }
     },
-    "postCreateCommand": "ocaml app/hello.ml"
-  }
-  
+    "postCreateCommand": "echo 'done'"
+}
