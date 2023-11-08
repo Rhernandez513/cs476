@@ -70,6 +70,14 @@ let rec eval (e : exp) : exp option =
         | Some (Bool b) -> eval (if b then e1 else e2)
         | _ -> None)
    (* problems 3-5 *)
+   | Inl e ->
+       (match eval e with
+        | Some v -> Some (Inl v)
+        | None -> None)
+   | Inr e ->
+       (match eval e with
+        | Some v -> Some (Inr v)
+        | None -> None)
    | _ -> None
 
 (*
