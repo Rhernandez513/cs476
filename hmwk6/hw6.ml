@@ -91,18 +91,30 @@ let expc : exp = App(Fun("x", App(Fun("y", Var "y"), Var "x")), Fun("z", Var "z"
 let expa : exp = ...
 let expb : exp = ...
 let expc : exp = ...
+
+So if we run the program like so, we get the following output
+
+$ ocaml hw6.ml
+> eval_expa: Some Var y
+> eval_expb: Some Function
+> eval_expc: Some Function
+
+This corresponds to what we wrote for problem 1, though we can't directly see the contents of the 
+functions which should both contain (λy. z)
 *)
 
 let eval_expa : exp option = eval expa
 let eval_expb : exp option = eval expb
 let eval_expc : exp option = eval expc
 
+(* Begin test cases *)
 let test1 : exp option = eval (App (Fun ("a", Add (Var "a", Int 1)), Int 5))
 let test2 : exp option = eval (Inr (Add (Int 3, Int 4)))
 let test3 : exp option = eval (Match (Inr (Bool false), "i", Var "i", "b", If (Var "b", Int 1, Int 0)))
 let test4 : exp option = eval (App (Fun ("y", Match (Var "y", "a", Var "a", "b", Add (Var "b", Int 2))), Inr (Int 5))) (* should return Some (Int 7) *)
 
 
+(* Begin pretty printing *)
 let print_test1 () =
   let test1_str = match test1 with
     | Some e -> "Some " ^ (match e with Var s -> "Var " ^ s | Int i -> "Int " ^ string_of_int i | Bool b -> "Bool " ^ string_of_bool b | _ -> "Function")
