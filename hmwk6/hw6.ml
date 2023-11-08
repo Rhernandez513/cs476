@@ -142,4 +142,8 @@ let print_eval_result (name, result) =
 let () =
   print_eval_result ("eval_expa", eval_expa);
   print_eval_result ("eval_expb", eval_expb);
-  print_eval_result ("eval_expc", eval_expc)
+  print_eval_result ("eval_expc", eval_expc);
+  print_test1();
+  print_test2();
+  print_test3();
+  print_test4();
