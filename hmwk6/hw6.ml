@@ -7,6 +7,9 @@ type exp = Var of ident | Fun of ident * exp | App of exp * exp
            | If of exp * exp * exp
            | Inl of exp | Inr of exp
            | Match of exp * ident * exp * ident * exp
+           | Tuple of exp * exp 
+           | Fst of exp 
+           | Snd of exp 
 
 (* implementation of substitution *)
 let rec vars (l : exp) : ident list =
@@ -19,6 +22,8 @@ let rec vars (l : exp) : ident list =
     | If (e1, e2, e3) -> vars e1 @ vars e2 @ vars e3
     | Inl e | Inr e -> vars e
     | Match (e, x1, e1, x2, e2) -> x1 :: x2 :: vars e @ vars e1 @ vars e2
+    | Tuple (e1, e2) -> vars e1 @ vars e2
+    | Fst e | Snd e -> vars e
     
 let rec fresh_aux (l : ident list) (i : int): ident =
     let s = String.make 1 (Char.chr i) in
@@ -44,6 +49,10 @@ let rec subst (x : ident) (l2 : exp) (l : exp) : exp =
         let (x1', e1') = avoid_capture x l2 x1 e1 in
         let (x2', e2') = avoid_capture x l2 x2 e2 in
         Match (subst x l2 e, x1', e1', x2', e2')
+    | Tuple (e1, e2) -> Tuple (subst x l2 e1, subst x l2 e2)
+    | Fst e -> Fst (subst x l2 e)
+    | Snd e -> Snd (subst x l2 e)
+
 and avoid_capture x l2 y b =
     if y = x then (y, b) else
     let z = fresh (Fun (x, l2)) in
@@ -69,7 +78,6 @@ let rec eval (e : exp) : exp option =
        (match eval e with
         | Some (Bool b) -> eval (if b then e1 else e2)
         | _ -> None)
-   (* problems 3-5 *)
    | Inl e ->
        (match eval e with
         | Some v -> Some (Inl v)
@@ -79,6 +87,28 @@ let rec eval (e : exp) : exp option =
         | Some v -> Some (Inr v)
         | None -> None)
    | _ -> None
+    (* I got this error from $ ocaml *)
+    (* Warning 11 [redundant-case]: this match case is unused.  *)
+    (* Though it looks to me the invocation for test3 looks to match.. *)
+    (* The result from the test case follows the error message, in that the value of test3 was None *)
+   | Match (e, x1, e1, x2, e2) ->
+    (match eval e with
+     | Some (Inl v) -> eval (subst x1 v e1)
+     | Some (Inr v) -> eval (subst x2 v e2)
+     | _ -> None)
+   | Tuple (e1, e2) ->  (* Evaluate a tuple by evaluating its components *)
+    (match eval e1, eval e2 with
+     | Some v1, Some v2 -> Some (Tuple (v1, v2))
+     | _, _ -> None)
+   | Fst e ->  (* Evaluate Fst by extracting the first component of the tuple *)
+    (match eval e with
+     | Some (Tuple (v1, _)) -> Some v1
+     | _ -> None)
+   | Snd e ->  (* Evaluate Snd by extracting the second component of the tuple *)
+    (match eval e with
+     | Some (Tuple (_, v2)) -> Some v2
+     | _ -> None)
+
 
 (*
 problem 1
@@ -121,6 +151,8 @@ let test2 : exp option = eval (Inr (Add (Int 3, Int 4)))
 let test3 : exp option = eval (Match (Inr (Bool false), "i", Var "i", "b", If (Var "b", Int 1, Int 0)))
 let test4 : exp option = eval (App (Fun ("y", Match (Var "y", "a", Var "a", "b", Add (Var "b", Int 2))), Inr (Int 5))) (* should return Some (Int 7) *)
 
+(* Tuple Test case *)
+let test_tuple = eval (Tuple (Snd (Tuple (Int 5, Bool true)), Fst (Tuple (Int 5, Bool true))))
 
 (* Begin pretty printing *)
 let print_test1 () =
@@ -158,6 +190,16 @@ let print_eval_result (name, result) =
     | None -> "None"
   in
   print_endline (name ^ ": " ^ result_str)
+
+  (* Doesn't work *)
+(* let print_test_tuple () =
+  let test_tuple_str = match test_tuple with
+      | Some (Tuple (v1, v2)) ->
+          "Some (Tuple (" ^ (match v1 with Int i -> "Int " ^ string_of_int i | Bool b -> "Bool " ^ string_of_bool b | _ -> "Function") ^ ", " ^
+          (match v2 with Int i -> "Int " ^ string_of_int i | Bool b -> "Bool " ^ string_of_bool b | _ -> "Function") ^ "))"
+      | _ -> "None"
+  in
+  print_endline ("test_tuple: " ^ test_tuple_str); *)
 
 let () =
   print_eval_result ("eval_expa", eval_expa);
