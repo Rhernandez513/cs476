@@ -86,11 +86,6 @@ let rec eval (e : exp) : exp option =
        (match eval e with
         | Some v -> Some (Inr v)
         | None -> None)
-   | _ -> None
-    (* I got this error from $ ocaml *)
-    (* Warning 11 [redundant-case]: this match case is unused.  *)
-    (* Though it looks to me the invocation for test3 looks to match.. *)
-    (* The result from the test case follows the error message, in that the value of test3 was None *)
    | Match (e, x1, e1, x2, e2) ->
     (match eval e with
      | Some (Inl v) -> eval (subst x1 v e1)
@@ -108,7 +103,6 @@ let rec eval (e : exp) : exp option =
     (match eval e with
      | Some (Tuple (_, v2)) -> Some v2
      | _ -> None)
-
 
 (*
 problem 1
@@ -137,8 +131,8 @@ $ ocaml hw6.ml
 > eval_expb: Some Function
 > eval_expc: Some Function
 
-This corresponds to what we wrote for problem 1, though we can't directly see the contents of the 
-functions which should both contain (λy. z)
+This corresponds to what we wrote for problem 1, though we can't directly
+see the contents of the functions which should both contain (λy. z)
 *)
 
 let eval_expa : exp option = eval expa
