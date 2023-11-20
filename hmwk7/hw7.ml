@@ -39,10 +39,12 @@ let rec get_constraints (gamma : context) (e : exp) : (typ * constraints) =
                   (ArrowTy (t1, t2), s)
 
   | Tuple (e1, e2) ->
-     let (t1, s1) = get_constraints gamma l1 in
-     let (t2, s2) = get_constraints gamma l2 in
+     let (t1, s1) = get_constraints gamma e1 in
+     let (t2, s2) = get_constraints gamma e2 in
      (TupleTy (t1, t2), s1 @ s2)
 
+  | Fst e ->
+    let 
   | App (l1, l2) ->
      let (t1, s1) = get_constraints gamma l1 in
      let (t2, s2) = get_constraints gamma l2 in
