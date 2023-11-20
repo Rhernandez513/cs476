@@ -47,7 +47,7 @@ let rec get_constraints (gamma : context) (e : exp) : (typ * constraints) =
     let t1 = fresh_tyvar () in
     let t2 = fresh_tyvar () in
     let (t, s) = get_constraints gamma e' in
-    (t1 (t, TupleTy (t1, t2)) :: s)
+    (t1, (t, TupleTy (t1, t2)) :: s)
 
   | Snd e' ->
     let t1 = fresh_tyvar () in
@@ -145,5 +145,4 @@ let test2 = type_of e2 (* should return Some (ArrowTy (TupleTy (IntTy, IntTy), I
 
 (* grad student problem *)
 let e3 = Fun ("x", Match (Var "x", "a", Inr (Add (Var "a", Num 1)), "b", Inl (Add (Num 2, Var "b"))))
-(*let test3 = type_of e3*) (* should return Some (ArrowTy (SumTy (IntTy, IntTy), SumTy (IntTy, IntTy))) *)
-
+let test3 = type_of e3 (* should return Some (ArrowTy (SumTy (IntTy, IntTy), SumTy (IntTy, IntTy))) *)
