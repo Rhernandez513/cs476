@@ -55,6 +55,27 @@ let rec get_constraints (gamma : context) (e : exp) : (typ * constraints) =
     let (t, s) = get_constraints gamma e' in
     (t2, (t, TupleTy (t1, t2)) :: s)
 
+  | Inl e' ->
+    let t1 = fresh_tyvar () in
+    let t2 = fresh_tyvar () in
+    let (t, s) = get_constraints gamma e' in
+    (SumTy (t1, t2), (t, SumTy (t1, t2)) :: s)
+
+  | Inr e' ->
+    let t1 = fresh_tyvar () in
+    let t2 = fresh_tyvar () in
+    let (t, s) = get_constraints gamma e' in
+    (SumTy (t1, t2), (t, SumTy (t1, t2)) :: s)
+
+  | Match (e', x1, e1, x2, e2) ->
+    let t = fresh_tyvar () in
+    let t_a = fresh_tyvar () in
+    let t_b = fresh_tyvar () in
+    let (t_e, s_e) = get_constraints gamma e' in
+    let (t1, s1) = get_constraints (update gamma x1 t_a) e1 in
+    let (t2, s2) = get_constraints (update gamma x2 t_b) e2 in
+    (t1, (t_e, SumTy (t_a, t_b)) :: (t1, t) :: s_e @ s1 @ s2)
+
   | App (l1, l2) ->
      let (t1, s1) = get_constraints gamma l1 in
      let (t2, s2) = get_constraints gamma l2 in
