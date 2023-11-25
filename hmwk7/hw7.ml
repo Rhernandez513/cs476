@@ -43,34 +43,34 @@ let rec get_constraints (gamma : context) (e : exp) : (typ * constraints) =
      let (t2, s2) = get_constraints gamma e2 in
      (TupleTy (t1, t2), s1 @ s2)
 
-  | Fst e' ->
+  | Fst e ->
     let t1 = fresh_tyvar () in
     let t2 = fresh_tyvar () in
-    let (t, s) = get_constraints gamma e' in
+    let (t, s) = get_constraints gamma e in
     (t1, (t, TupleTy (t1, t2)) :: s)
 
-  | Snd e' ->
+  | Snd e ->
     let t1 = fresh_tyvar () in
     let t2 = fresh_tyvar () in
-    let (t, s) = get_constraints gamma e' in
+    let (t, s) = get_constraints gamma e in
     (t2, (t, TupleTy (t1, t2)) :: s)
 
-  | Inl e' ->
+  | Inl e ->
     let t1 = fresh_tyvar () in
     let t2 = fresh_tyvar () in
-    let (t, s) = get_constraints gamma e' in
+    let (t, s) = get_constraints gamma e in
     (SumTy (t1, t2), (t, SumTy (t1, t2)) :: s)
 
-  | Inr e' ->
+  | Inr e ->
     let t1 = fresh_tyvar () in
     let t2 = fresh_tyvar () in
-    let (t, s) = get_constraints gamma e' in
+    let (t, s) = get_constraints gamma e in
     (SumTy (t1, t2), (t, SumTy (t1, t2)) :: s)
 
-  | Match (e', x1, e1, x2, e2) ->
+  | Match (e, x1, e1, x2, e2) ->
     let t_a = fresh_tyvar () in
     let t_b = fresh_tyvar () in
-    let (t_e, s_e) = get_constraints gamma e' in
+    let (t_e, s_e) = get_constraints gamma e in
     let (t1, s1) = get_constraints (update gamma x1 t_a) e1 in
     let (t2, s2) = get_constraints (update gamma x2 t_b) e2 in
     (t1, (t_e, SumTy (t_a, t_b)) :: (t1, t2) :: s_e @ s1 @ s2)
@@ -142,5 +142,6 @@ let test1 = type_of e1 (* should return Some (ArrowTy (IntTy, ArrowTy (IntTy, Tu
 let e2 = Fun ("x", Add (Fst (Var "x"), Snd (Var "x")))
 let test2 = type_of e2 (* should return Some (ArrowTy (TupleTy (IntTy, IntTy), IntTy)) *)
 
+(* grad student problem *)
 let e3 = Fun ("x", Match (Var "x", "a", Inr (Add (Var "a", Num 1)), "b", Inl (Add (Num 2, Var "b"))))
 let test3 = type_of e3 (* should return Some (ArrowTy (SumTy (IntTy, IntTy), SumTy (IntTy, IntTy))) *)
