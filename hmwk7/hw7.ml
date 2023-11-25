@@ -68,13 +68,12 @@ let rec get_constraints (gamma : context) (e : exp) : (typ * constraints) =
     (SumTy (t1, t2), (t, SumTy (t1, t2)) :: s)
 
   | Match (e', x1, e1, x2, e2) ->
-    let t = fresh_tyvar () in
     let t_a = fresh_tyvar () in
     let t_b = fresh_tyvar () in
     let (t_e, s_e) = get_constraints gamma e' in
     let (t1, s1) = get_constraints (update gamma x1 t_a) e1 in
     let (t2, s2) = get_constraints (update gamma x2 t_b) e2 in
-    (t1, (t_e, SumTy (t_a, t_b)) :: (t1, t) :: s_e @ s1 @ s2)
+    (t1, (t_e, SumTy (t_a, t_b)) :: (t1, t2) :: s_e @ s1 @ s2)
 
   | App (l1, l2) ->
      let (t1, s1) = get_constraints gamma l1 in
@@ -143,6 +142,5 @@ let test1 = type_of e1 (* should return Some (ArrowTy (IntTy, ArrowTy (IntTy, Tu
 let e2 = Fun ("x", Add (Fst (Var "x"), Snd (Var "x")))
 let test2 = type_of e2 (* should return Some (ArrowTy (TupleTy (IntTy, IntTy), IntTy)) *)
 
-(* grad student problem *)
 let e3 = Fun ("x", Match (Var "x", "a", Inr (Add (Var "a", Num 1)), "b", Inl (Add (Num 2, Var "b"))))
 let test3 = type_of e3 (* should return Some (ArrowTy (SumTy (IntTy, IntTy), SumTy (IntTy, IntTy))) *)
