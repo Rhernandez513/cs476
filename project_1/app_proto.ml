@@ -187,11 +187,73 @@ let print_song_data (data : song_data) : unit =
 ;;
 
 (* Populate the tuple *)
-let example_data : song_data =
-  (StringVal ["D"; "A"; "A7"; "D"], StringVal ["Hey Jude"; "don't make"; "it bad, take"; "a sad song, and make it better"])
+let verse_one_bar_one : song_data =
+  (StringVal ["D"; "A"; "A7"; "Asus4"; "A"; "D"], StringVal ["Hey Jude"; "don't make"; "it bad, take"; "a sad song, and make it better"])
 
 (* Print the tuple to the console *)
-let () = print_song_data example_data
+let () = print_song_data verse_one_bar_one 
 
+let verse_one_bar_two : song_data =
+  (StringVal ["G"; "D"; "A"; "A7"; "D"], StringVal ["Remember to let her into your"; "heart, then you can"; "start to"; "make it"; "better"])
+let () = print_song_data verse_one_bar_two
+
+let verse_one_bar_three : song_data =
+  (StringVal ["D"; "A"; "A7"; "Asus4"; "A"; "D"], StringVal ["Hey Jude, don't be"; "afraid, you were"; "made"; "to go"; "out and"; "get her"])
+let () = print_song_data verse_one_bar_three
+
+let verse_one_bar_four : song_data =
+  (StringVal ["G"; "D"; "A"; "A7"; "D"], StringVal ["The minute you let her under your"; "skin, then you"; "begin to"; "make it"; "better"])
+let () = print_song_data verse_one_bar_four 
+
+
+let chorus_one_bar_one : song_data =
+  (StringVal ["D7"; "G"; "Bm"; "Em"; "G"; "A7"; "D"], StringVal ["And anytime you feel the"; "pain, hey"; "Jude,"; "refrain, don't"; "carry the"; "world upon your"; "shoulder"])
+let () = print_song_data chorus_one_bar_one
+
+let chorus_one_bar_two : song_data =
+  (StringVal ["D7"; "G"; "Bm"; "Em"; "G"; "A7"; "D"], StringVal ["For well you know that it's a"; "fool who"; "plays it"; "cool by"; "making his"; "world a little"; "colder"])
+let () = print_song_data chorus_one_bar_two
+
+
+let interlude_bar : song_data =
+  (StringVal ["D"; "D7"; "A7"], StringVal ["Da da da"; "da da"; "da da da"])
+let () = print_song_data interlude_bar 
+
+
+let verse_two_bar_one : song_data =
+  (StringVal ["D"; "A"; "A7"; "Asus4"; "A"; "D"], StringVal ["Hey Jude, don't let me"; "down, you have"; "found"; "her, now"; "go and"; "get her"])
+
+let () = print_song_data verse_two_bar_one 
+
+let verse_two_bar_two : song_data =
+  (StringVal ["G"; "D"; "A"; "A7"; "D"], StringVal ["Remember to let her into your"; "heart, then you can"; "start to"; "make it"; "better"])
+let () = print_song_data verse_two_bar_two 
+
+
+let chorus_two_bar_one : song_data =
+  (StringVal ["D7"; "G"; "Bm"; "Em"; "G"; "A7"; "D"], StringVal ["So let it out and let it"; "in, hey Jude,"; "begin, you're"; "waiting for"; "someone to"; "perform with"])
+let () = print_song_data chorus_two_bar_one
+
+let chorus_two_bar_two : song_data =
+  (StringVal ["D7"; "G"; "Bm"; "Em"; "G"; "A7"; "D"], StringVal ["And don't you know that it's just"; "you, hey"; "Jude, you'll"; "do, the"; "movement you"; "need is on your"; "shoulders"])
+let () = print_song_data chorus_two_bar_two
+
+
+let () = print_song_data interlude_bar 
+
+
+let () = print_song_data verse_one_bar_one 
+let () = print_song_data verse_one_bar_two
+
+
+let outro_bar : song_data =
+  (StringVal ["D"; "C"; "G"; "D"], StringVal ["Na na na"; "na na na na"; "na na na na,"; "hey Jude"])
+
+let print_song_data_multiple_times (data : song_data) (n : int) : unit =
+  for _ = 1 to n do
+    print_song_data data
+  done
+
+let () = print_song_data_multiple_times outro_bar 10
 
 (* EOF *)
