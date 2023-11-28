@@ -155,13 +155,43 @@ let string_of_env env =
 
   xy_str ^ additional_strings
 
-let env_song =
+let env_song_metadata =
   update_strings empty_env [
     ("Song Name", StringVal "Hey Jude");
     ("Artist", StringVal "The Beatles");
     ("Key", StringVal "D");
     ("Tuning", StringVal "Standard")
   ]
-let _ = print_endline ("env_song: " ^ string_of_env env_song)
+let _ = print_endline ("song_metadata: " ^ string_of_env env_song_metadata)
+
+
+(* BEGIN SONG DATA *)
+type chord_bar = StringVal of string list
+type music_bar = StringVal of string list
+
+type song_data = chord_bar * music_bar
+
+let print_song_data (data : song_data) : unit =
+  let print_chord_bar (chord_bar : chord_bar) =
+    match chord_bar with
+    | StringVal chords -> String.concat " " chords
+  in
+
+  let print_music_bar (music_bar : music_bar) =
+    match music_bar with
+    | StringVal lyrics -> String.concat " " lyrics
+  in
+
+  let (chords, lyrics) = data in
+  Printf.printf "Chords: %s\nLyrics: %s\n" (print_chord_bar chords) (print_music_bar lyrics)
+;;
+
+(* Populate the tuple *)
+let example_data : song_data =
+  (StringVal ["D"; "A"; "A7"; "D"], StringVal ["Hey Jude"; "don't make"; "it bad, take"; "a sad song, and make it better"])
+
+(* Print the tuple to the console *)
+let () = print_song_data example_data
+
 
 (* EOF *)
