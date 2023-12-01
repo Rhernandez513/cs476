@@ -2,16 +2,28 @@ open List
 
 type ident = string
 
+type chord_bar = StringVal of string list | StringListVal of string list
+type music_bar = StringVal of string list | StringListVal of string list
+
+type music_bar_tuple = chord_bar * music_bar
+
 (* Syntax *)
+(* add constructor for string literals*)
 type exp = Var of ident | Num of int | Add of exp * exp | Sub of exp * exp
          | Bool of bool | And of exp * exp | Or of exp * exp
          | Eq of exp * exp
+         | StringLit of string
+         | StringListVal of string list
+         | AppendString of ident * exp
 
 type cmd = Assign of ident * exp | Seq of cmd * cmd | Skip
            | If of exp * cmd * cmd | While of exp * cmd
            | Call of ident * ident * exp list | Return of exp
+           (* Add constructor for appending string to bar*)
+           | AppendString of ident * exp
 
-type value = IntVal of int | BoolVal of bool | StringVal of string
+(* add constructor for string lists*)
+type value = IntVal of int | BoolVal of bool | StringVal of string | StringListVal of string list
 
 type entry = Val of value
            | Fun of ident list (* list of params *) * cmd (* body *)
@@ -43,6 +55,13 @@ let rec add_args (r : env) (li : ident list) (lv : value list) : env =
 (* Semantics *)
 let rec eval_exp (e : exp) (r : env) : value option =
   match e with
+  (* extend eval_exp func for string literals*)
+  | StringLit s -> Some (StringVal s)
+  | StringListVal lst -> Some (StringListVal lst)  (* New case for StringListVal *)
+  | AppendString (bar, str_exp) -> (match lookup r bar, eval_exp str_exp r with
+                                    | Some (Val (StringListVal lst)), Some (StringVal str) ->
+                                      Some (StringListVal (lst @ [str]))
+                                    | _, _ -> None)
   | Var x -> (match lookup r x with Some (Val v) -> Some v | _ -> None)
   | Num i -> Some (IntVal i)
   | Add (e1, e2) -> (match eval_exp e1 r, eval_exp e2 r with
@@ -65,6 +84,10 @@ let rec eval_exp (e : exp) (r : env) : value option =
 let rec eval_exps (es : exp list) (r : env) : value list option =
   match es with
   | [] -> Some []
+  (*Extend eval_exps for string literals in a list*)
+  | StringLit s :: rest -> (match eval_exp (StringLit s) r, eval_exps rest r with
+                            | Some v, Some vs -> Some (v :: vs)
+                            | _, _ -> None)
   | e :: rest -> (match eval_exp e r, eval_exps rest r with
                   | Some v, Some vs -> Some (v :: vs)
                   | _, _ -> None)
@@ -76,6 +99,15 @@ type config = cmd * stack * env
 let rec step_cmd (con : config) : config option =
   let (c, k, r) = con in
   match c with
+  | AppendString (bar, str_exp) ->
+    (match lookup r bar, eval_exp str_exp r with
+    | Some (Val (StringListVal lst)), Some (StringVal str) ->
+        Some (Skip, k, update r bar (Val (StringListVal (lst @ [str]))))
+    | Some (Val (StringListVal lst)), Some (StringListVal str_lst) ->
+        Some (Skip, k, update r bar (Val (StringListVal (lst @ str_lst))))
+    | Some (Val (StringVal s)), Some (StringVal str) ->
+        Some (Skip, k, update r bar (Val (StringVal (s ^ " " ^ str))))
+    | _, _ -> None)
   | Assign (x, e) -> (match eval_exp e r with
                       | Some v -> Some (Skip, k, update r x (Val v))
                       | None -> None)
@@ -116,6 +148,8 @@ let string_of_value = function
   | IntVal i -> string_of_int i
   | BoolVal b -> string_of_bool b
   | StringVal s -> s
+  (*extend string_of_value to handle string lists*)
+  | StringListVal lst -> "[" ^ String.concat "; " lst ^ "]"
 
 
 let string_of_env env =
@@ -123,13 +157,6 @@ let string_of_env env =
   let key_val, tuning_val, song_name_val, artist_val =
     lookup env "Key", lookup env "Tuning", lookup env "Song Name", lookup env "Artist"
   in
-
-  (* let xy_str =
-    match (x_val, y_val) with
-    | (Some (Val (IntVal x)), Some (Val (IntVal y))) ->
-      "x: " ^ string_of_int x ^ ", y: " ^ string_of_int y
-    | _ -> ""
-  in *)
 
   let key_tuning_str key tuning =
     match (key, tuning) with
@@ -159,32 +186,58 @@ let env_song_metadata =
     ("Song Name", StringVal "Hey Jude");
     ("Artist", StringVal "The Beatles");
     ("Key", StringVal "D");
-    ("Tuning", StringVal "Standard")
+    ("Tuning", StringVal "Standard");
     ("Capo", StringVal "III")
   ]
 let _ = print_endline ("song_metadata: " ^ string_of_env env_song_metadata)
 
 
-(* BEGIN SONG DATA *)
-type chord_bar = StringVal of string list
-type music_bar = StringVal of string list
-
-type music_bar_tuple = chord_bar * music_bar
-
 let print_music_bar_tuple (data : music_bar_tuple) : unit =
   let print_chord_bar (chord_bar : chord_bar) =
     match chord_bar with
     | StringVal chords -> String.concat " " chords
+    (*extend print_chord_bar to handle StringListVal*)
+    | StringListVal lst -> String.concat " " lst
   in
 
   let print_music_bar (music_bar : music_bar) =
     match music_bar with
     | StringVal lyrics -> String.concat " " lyrics
+    (*extend print_music_bar to handle StringListVal*)
+    | StringListVal lst -> String.concat " " lst
   in
 
   let (chords, lyrics) = data in
   Printf.printf "Chords: %s\nLyrics: %s\n" (print_chord_bar chords) (print_music_bar lyrics)
 ;;
+
+
+let initial_env =
+  update_strings empty_env [
+    ("chord_bar", StringListVal []);
+    ("music_bar", StringListVal [])
+  ]
+
+let main_program : cmd =
+  Seq
+    ( AppendString ("chord_bar", StringListVal ["D"; "A"; "A7"; "Asus4"; "A"]),
+      AppendString ("music_bar", StringListVal ["Hey Jude"; "don't make"; "it bad, take"; "a sad song, and make it better"])
+    )
+    
+        
+let () =
+  let final_config = run_prog main_program initial_env in
+  match final_config with
+  | _, _, env ->
+    (match lookup env "music_bar", lookup env "chord_bar" with
+    | Some (Val (StringListVal music_bar)), Some (Val (StringListVal chord_bar)) ->
+      Printf.printf "Chord Bar: %s\nMusic Bar: %s\n" (String.concat " " chord_bar) (String.concat " " music_bar)
+    | _ -> print_endline "Error: Couldn't retrieve elements from the environment");;
+  
+
+exit 0
+
+
 
 (* Populate the tuple *)
 let verse_one_bar_one : music_bar_tuple =
