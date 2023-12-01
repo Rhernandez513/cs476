@@ -192,6 +192,19 @@ let env_song_metadata =
 let _ = print_endline ("song_metadata: " ^ string_of_env env_song_metadata)
 
 
+let initial_env =
+  update_strings empty_env [
+    ("chord_bar", StringListVal []);
+    ("music_bar", StringListVal [])
+  ]
+    
+let rec seq_of_cmds cmds =
+  match cmds with
+  | [] -> Skip
+  | [cmd] -> cmd
+  | cmd :: rest -> Seq (cmd, seq_of_cmds rest)
+    
+
 let print_music_bar_tuple (data : music_bar_tuple) : unit =
   let print_chord_bar (chord_bar : chord_bar) =
     match chord_bar with
@@ -210,37 +223,66 @@ let print_music_bar_tuple (data : music_bar_tuple) : unit =
   let (chords, lyrics) = data in
   Printf.printf "Chords: %s\nLyrics: %s\n" (print_chord_bar chords) (print_music_bar lyrics)
 ;;
-
-
-let initial_env =
-  update_strings empty_env [
-    ("chord_bar", StringListVal []);
-    ("music_bar", StringListVal [])
-  ]
-
-let main_program : cmd =
-  Seq
-    ( AppendString ("chord_bar", StringListVal ["D"; "A"; "A7"; "Asus4"; "A"]),
-      AppendString ("music_bar", StringListVal ["Hey Jude"; "don't make"; "it bad, take"; "a sad song, and make it better"])
-    )
     
-        
+let main_program : cmd =
+  seq_of_cmds
+    [
+      AppendString ("chord_bar", StringListVal ["D"; "A"; "A7"; "Asus4"; "A\n"]);
+      AppendString ("music_bar", StringListVal ["Hey Jude"; "don't make"; "it bad, take"; "a sad song, and make it better\n"]);
+
+      AppendString ("chord_bar", StringListVal ["G"; "D"; "A"; "A7"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["Remember to let her into your"; "heart, then you can"; "start to"; "make it"; "better\n"]);
+
+      AppendString ("chord_bar", StringListVal ["D"; "A"; "A7"; "Asus4"; "A"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["Hey Jude, don't be"; "afraid, you were"; "made"; "to go"; "out and"; "get her\n"]);
+
+      AppendString ("chord_bar", StringListVal ["G"; "D"; "A"; "A7"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["The minute you let her under your"; "skin, then you"; "begin to"; "make it"; "better\n"]);
+
+      AppendString ("chord_bar", StringListVal ["D7"; "G"; "Bm"; "Em"; "G"; "A7"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["And anytime you feel the"; "pain, hey"; "Jude,"; "refrain, don't"; "carry the"; "world upon your"; "shoulder\n"]);
+
+      AppendString ("chord_bar", StringListVal ["D7"; "G"; "Bm"; "Em"; "G"; "A7"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["For well you know that it's a"; "fool who"; "plays it"; "cool by"; "making his"; "world a little"; "colder\n"]);
+
+      AppendString ("chord_bar", StringListVal ["D"; "D7"; "A7\n"]);
+      AppendString ("music_bar", StringListVal ["Da da da"; "da da"; "da da da\n"]);
+
+      AppendString ("chord_bar", StringListVal ["D"; "A"; "A7"; "Asus4"; "A"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["Hey Jude, don't let me"; "down, you have"; "found"; "her, now"; "go and"; "get her\n"]);
+
+      AppendString ("chord_bar", StringListVal ["G"; "D"; "A"; "A7"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["Remember to let her into your"; "heart, then you can"; "start to"; "make it"; "better\n"]);
+
+      AppendString ("chord_bar", StringListVal ["G"; "D"; "A"; "A7"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["Remember to let her into your"; "heart, then you can"; "start to"; "make it"; "better\n"]);
+
+      AppendString ("chord_bar", StringListVal ["D7"; "G"; "Bm"; "Em"; "G"; "A7"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["So let it out and let it"; "in, hey Jude,"; "begin, you're"; "waiting for"; "someone to"; "perform with\n"]);
+
+      AppendString ("chord_bar", StringListVal ["D7"; "G"; "Bm"; "Em"; "G"; "A7"; "D\n"]);
+      AppendString ("music_bar", StringListVal ["And don't you know that it's just"; "you, hey"; "Jude, you'll"; "do, the"; "movement you"; "need is on your"; "shoulders\n"]);
+
+      AppendString ("chord_bar", StringListVal ["D"; "C"; "G"; "D"]);
+      AppendString ("music_bar", StringListVal ["Na na na"; "na na na na"; "na na na na,"; "hey Jude"]);
+    ]
+  
+    
 let () =
   let final_config = run_prog main_program initial_env in
   match final_config with
   | _, _, env ->
     (match lookup env "music_bar", lookup env "chord_bar" with
     | Some (Val (StringListVal music_bar)), Some (Val (StringListVal chord_bar)) ->
-      Printf.printf "Chord Bar: %s\nMusic Bar: %s\n" (String.concat " " chord_bar) (String.concat " " music_bar)
+      Printf.printf "Chords:\n %s\n\nLyris:\n %s\n" (String.concat " " chord_bar) (String.concat " " music_bar)
     | _ -> print_endline "Error: Couldn't retrieve elements from the environment");;
-  
 
-exit 0
+
 
 
 
 (* Populate the tuple *)
-let verse_one_bar_one : music_bar_tuple =
+(* let verse_one_bar_one : music_bar_tuple =
   (StringVal ["D"; "A"; "A7"; "Asus4"; "A"; "D"], StringVal ["Hey Jude"; "don't make"; "it bad, take"; "a sad song, and make it better"])
 
 (* Print the tuple to the console *)
@@ -296,7 +338,7 @@ let () = print_music_bar_tuple interlude_bar
 
 
 let () = print_music_bar_tuple verse_one_bar_one 
-let () = print_music_bar_tuple verse_one_bar_two
+let () = print_music_bar_tuple verse_one_bar_two *)
 
 
 let outro_bar : music_bar_tuple =
@@ -307,6 +349,6 @@ let print_music_bar_tuple_multiple_times (data : music_bar_tuple) (n : int) : un
     print_music_bar_tuple data
   done
 
-let () = print_music_bar_tuple_multiple_times outro_bar 10
+let () = print_music_bar_tuple_multiple_times outro_bar 9
 
 (* EOF *)
